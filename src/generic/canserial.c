@@ -79,7 +79,7 @@ canserial_tx_task(void)
 DECL_TASK(canserial_tx_task);
 
 // Encode and transmit a "response" message
-void
+uint_fast8_t
 console_sendf(const struct command_encoder *ce, va_list args)
 {
     // Verify space for message
@@ -90,7 +90,7 @@ console_sendf(const struct command_encoder *ce, va_list args)
     if (tmax + max_size > sizeof(CanData.transmit_buf)) {
         if (tmax + max_size - tpos > sizeof(CanData.transmit_buf))
             // Not enough space for message
-            return;
+            return max_size > sizeof(CanData.transmit_buf);
         // Move buffer
         tmax -= tpos;
         memmove(&CanData.transmit_buf[0], &CanData.transmit_buf[tpos], tmax);
@@ -105,6 +105,7 @@ console_sendf(const struct command_encoder *ce, va_list args)
     // Start message transmit
     CanData.transmit_max = tmax + msglen;
     canserial_notify_tx();
+    return 1;
 }
 
 
